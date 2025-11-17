@@ -1,0 +1,12 @@
+src/
+tsconfig.json
+.git/
+.github/
+*.md
+!README.md
+node_modules/
+.env*
+*.log
+coverage/
+.vscode/
+.idea/
