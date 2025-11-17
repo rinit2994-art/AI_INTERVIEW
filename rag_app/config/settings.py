@@ -10,8 +10,8 @@ load_dotenv()
 class Settings(BaseSettings):
     """Application settings."""
 
-    # API Configuration
-    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    # API Configuration (Hardcoded)
+    gemini_api_key: str = "AIzaSyDDwq8X1v4rU9qoGTqeWGwVOaJDQvrZHYU"
 
     # Application
     app_name: str = "AI Knowledge RAG System"
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
 
     # Gemini Model
-    gemini_model: str = "gemini-2.0-flash-exp"
+    gemini_model: str = "gemini-1.5-flash"
     temperature: float = 0.7
     max_output_tokens: int = 2048
 
