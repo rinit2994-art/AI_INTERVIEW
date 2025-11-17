@@ -1,0 +1,178 @@
+name: Expand Knowledge Base and Deploy
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight
+
+jobs:
+  expand-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 hours max
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install chromadb requests beautifulsoup4 lxml google-generativeai
+          pip install langchain langchain-community
+
+      - name: Run knowledge expansion pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          cd rag_app
+
+          # Run parallel expansion with 100 topics (takes ~2-3 hours)
+          python -c "
+          from parallel_expansion_pipeline import ParallelKnowledgeExpansion
+
+          print('🚀 Starting Knowledge Base Expansion...')
+
+          pipeline = ParallelKnowledgeExpansion(max_workers=5)
+          pipeline.run_parallel_pipeline(max_topics=100)
+
+          stats = pipeline.get_stats()
+          print(f'\n✅ Expansion Complete!')
+          print(f'Total documents: {stats[\"total_documents\"]:,}')
+          print(f'Topics processed: {stats[\"processed_topics\"]}')
+          "
+
+      - name: Export expanded knowledge base to JSON
+        run: |
+          cd rag_app
+
+          python -c "
+          import chromadb
+          import json
+          from chromadb.config import Settings
+
+          # Connect to ChromaDB
+          client = chromadb.Client(Settings(
+              anonymized_telemetry=False,
+              persist_directory='./chroma_db'
+          ))
+
+          collection = client.get_collection('mega_knowledge_base')
+
+          # Get all documents
+          results = collection.get(include=['documents', 'metadatas'])
+
+          # Export to JSON
+          export_data = {
+              'total_documents': len(results['documents']),
+              'documents': [
+                  {
+                      'id': results['ids'][i],
+                      'content': results['documents'][i],
+                      'metadata': results['metadatas'][i]
+                  }
+                  for i in range(len(results['documents']))
+              ]
+          }
+
+          with open('../docs/expanded_knowledge.json', 'w') as f:
+              json.dump(export_data, f)
+
+          print(f'✅ Exported {len(results[\"documents\"]):,} documents to JSON')
+          "
+
+      - name: Generate static search index
+        run: |
+          cd rag_app
+
+          python -c "
+          import json
+          import hashlib
+          from knowledge_base_manager_v2 import KnowledgeBaseManager
+
+          # Load expanded knowledge
+          with open('../docs/expanded_knowledge.json', 'r') as f:
+              data = json.load(f)
+
+          # Load original KB
+          kb = KnowledgeBaseManager()
+          kb.parse_typescript_kb()
+
+          # Create comprehensive index
+          search_index = {
+              'total_documents': data['total_documents'],
+              'original_entries': len(kb.entries),
+              'categories': list(kb.category_index.keys()),
+              'documents': []
+          }
+
+          # Add all documents with search metadata
+          for doc in data['documents']:
+              content = doc['content']
+              metadata = doc['metadata']
+
+              # Create searchable entry
+              entry = {
+                  'id': doc['id'],
+                  'title': metadata.get('title', 'Unknown'),
+                  'content': content[:500],  # Preview
+                  'full_content': content,
+                  'category': metadata.get('category', 'General'),
+                  'topic': metadata.get('topic', ''),
+                  'source': metadata.get('source', 'Web'),
+                  'keywords': metadata.get('keywords', '').split(',')[:10]
+              }
+
+              search_index['documents'].append(entry)
+
+          # Save search index
+          with open('../docs/search_index.json', 'w') as f:
+              json.dump(search_index, f, indent=2)
+
+          print(f'✅ Created search index with {len(search_index[\"documents\"]):,} entries')
+          "
+
+      - name: Update GitHub Pages site
+        run: |
+          # Update index.html with expanded knowledge base info
+          python -c "
+          import json
+
+          with open('docs/search_index.json', 'r') as f:
+              index = json.load(f)
+
+          print(f'📊 Knowledge Base Statistics:')
+          print(f'   Total Documents: {index[\"total_documents\"]:,}')
+          print(f'   Original Entries: {index[\"original_entries\"]:,}')
+          print(f'   Categories: {len(index[\"categories\"])}')
+          "
+
+      - name: Commit and push expanded knowledge base
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add docs/expanded_knowledge.json
+          git add docs/search_index.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-expand knowledge base: $(date +'%Y-%m-%d %H:%M')"
+            git push
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: true
