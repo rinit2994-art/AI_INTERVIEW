@@ -7,7 +7,6 @@ import aiohttp
 import feedparser
 import requests
 from bs4 import BeautifulSoup
-from trafilatura import fetch_url, extract
 from config.settings import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -41,13 +40,11 @@ class ArticleFetcher:
                 feed = feedparser.parse(rss_url)
 
                 for entry in feed.entries[:max_per_tag]:
-                    # Extract content using trafilatura
-                    downloaded = fetch_url(entry.link)
-                    if downloaded:
-                        content = extract(downloaded, include_comments=False, include_tables=False)
+                    # Use summary/description as content
+                    content = entry.get('summary', entry.get('description', ''))
 
-                        if content:
-                            articles.append({
+                    if content:
+                        articles.append({
                                 "title": entry.title,
                                 "content": content,
                                 "url": entry.link,
@@ -120,21 +117,19 @@ class ArticleFetcher:
             feed = feedparser.parse(rss_url)
 
             for entry in feed.entries[:max_articles]:
-                downloaded = fetch_url(entry.link)
-                if downloaded:
-                    content = extract(downloaded, include_comments=False, include_tables=False)
+                content = entry.get('summary', entry.get('description', ''))
 
-                    if content:
-                        articles.append({
-                            "title": entry.title,
-                            "content": content,
-                            "url": entry.link,
-                            "source": "Towards Data Science",
-                            "category": "data-science",
-                            "published_date": entry.get("published", ""),
-                            "fetched_date": datetime.now().isoformat()
-                        })
-                        logger.info(f"Fetched: {entry.title}")
+                if content:
+                    articles.append({
+                        "title": entry.title,
+                        "content": content,
+                        "url": entry.link,
+                        "source": "Towards Data Science",
+                        "category": "data-science",
+                        "published_date": entry.get("published", ""),
+                        "fetched_date": datetime.now().isoformat()
+                    })
+                    logger.info(f"Fetched: {entry.title}")
 
         except Exception as e:
             logger.error(f"Error fetching Towards Data Science: {e}")
@@ -152,21 +147,19 @@ class ArticleFetcher:
             feed = feedparser.parse(rss_url)
 
             for entry in feed.entries[:max_articles]:
-                downloaded = fetch_url(entry.link)
-                if downloaded:
-                    content = extract(downloaded, include_comments=False, include_tables=False)
+                content = entry.get('summary', entry.get('description', ''))
 
-                    if content:
-                        articles.append({
-                            "title": entry.title,
-                            "content": content,
-                            "url": entry.link,
-                            "source": "Google AI Blog",
-                            "category": "ai-research",
-                            "published_date": entry.get("published", ""),
-                            "fetched_date": datetime.now().isoformat()
-                        })
-                        logger.info(f"Fetched: {entry.title}")
+                if content:
+                    articles.append({
+                        "title": entry.title,
+                        "content": content,
+                        "url": entry.link,
+                        "source": "Google AI Blog",
+                        "category": "ai-research",
+                        "published_date": entry.get("published", ""),
+                        "fetched_date": datetime.now().isoformat()
+                    })
+                    logger.info(f"Fetched: {entry.title}")
 
         except Exception as e:
             logger.error(f"Error fetching Google AI Blog: {e}")
