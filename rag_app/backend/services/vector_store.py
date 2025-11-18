@@ -23,11 +23,13 @@ class VectorStoreService:
 
         # Initialize embeddings model
         logger.info(f"Loading embedding model: {settings.embedding_model}")
+        logger.info("This may take a while as the model needs to be downloaded...")
         self.embeddings = HuggingFaceEmbeddings(
             model_name=settings.embedding_model,
             model_kwargs={'device': 'cpu'},
             encode_kwargs={'normalize_embeddings': True}
         )
+        logger.info("Embedding model loaded successfully.")
 
         # Initialize text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
