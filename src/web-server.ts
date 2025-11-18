@@ -17,11 +17,11 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // API Routes
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Interview API is running' });
 });
 
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', (_req, res) => {
   const categories = getCategories();
   res.json({
     totalQuestions: HARDCODED_INTERVIEW_DATABASE.length,
@@ -33,7 +33,7 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
-app.get('/api/categories', (req, res) => {
+app.get('/api/categories', (_req, res) => {
   res.json({ categories: getCategories() });
 });
 
@@ -44,10 +44,11 @@ app.get('/api/categories/:category/questions', (req, res) => {
   );
 
   if (questions.length === 0) {
-    return res.status(404).json({
+    res.status(404).json({
       error: 'Category not found',
       availableCategories: getCategories()
     });
+    return;
   }
 
   res.json({
@@ -57,7 +58,7 @@ app.get('/api/categories/:category/questions', (req, res) => {
   });
 });
 
-app.get('/api/random', (req, res) => {
+app.get('/api/random', (_req, res) => {
   const result = instantInterviewHandler.getPracticeQuestion();
   res.json({ question: result });
 });
@@ -66,7 +67,8 @@ app.post('/api/ask', (req, res) => {
   const { question } = req.body;
 
   if (!question || typeof question !== 'string') {
-    return res.status(400).json({ error: 'Question is required' });
+    res.status(400).json({ error: 'Question is required' });
+    return;
   }
 
   const answer = instantInterviewHandler.getInstantAnswer(question);
@@ -74,7 +76,7 @@ app.post('/api/ask', (req, res) => {
 });
 
 // Root endpoint
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.send(`
 <!DOCTYPE html>
 <html lang="en">

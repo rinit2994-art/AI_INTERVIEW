@@ -25,9 +25,9 @@ export async function startMcpFastInfoServer(
   server.tool(
     'fast_info_retrieval',
     'Quickly retrieve concise information on a given query from a specialized, fast knowledge source. Instant answers for mock interview questions.',
-    z.object({
+    {
       query: z.string().min(1).max(500).describe('The specific query for which to retrieve fast information.')
-    }),
+    },
     async ({query}) => {
       // Check cache first
       const cached = queryCache.get(query);
@@ -77,7 +77,7 @@ export async function startMcpFastInfoServer(
   server.tool(
     'get_categories',
     'Get all available interview question categories',
-    z.object({}),
+    {},
     async () => {
       const categories = getCategories();
       const result = `**Available Categories:**\n\n${categories.map(c => `- ${c}`).join('\n')}\n\nUse 'get_questions_by_category' to see questions in a specific category.`;
@@ -91,9 +91,9 @@ export async function startMcpFastInfoServer(
   server.tool(
     'get_questions_by_category',
     'Get all interview questions in a specific category',
-    z.object({
+    {
       category: z.string().describe('The category name (e.g., "JavaScript", "React", "Algorithms")')
-    }),
+    },
     async ({category}) => {
       const questions = getQuestionsByCategory(category);
       if (questions.length === 0) {
@@ -114,7 +114,7 @@ export async function startMcpFastInfoServer(
   server.tool(
     'get_random_question',
     'Get a random interview question to practice',
-    z.object({}),
+    {},
     async () => {
       const question = getRandomQuestion();
       const result = `**Random Interview Question:**\n\n${question.question}\n\n**Category:** ${question.category}\n\n*Think about your answer, then ask me the same question to see the answer!*`;

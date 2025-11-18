@@ -11,8 +11,8 @@ load_dotenv()
 class Settings(BaseSettings):
     """Application settings."""
 
-    # API Configuration (Hardcoded)
-    gemini_api_key: str = "AIzaSyDDwq8X1v4rU9qoGTqeWGwVOaJDQvrZHYU"
+    # API Configuration
+    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
 
     # Application
     app_name: str = "AI Knowledge RAG System"
@@ -33,9 +33,9 @@ class Settings(BaseSettings):
     max_articles_per_source: int = 50
     fetch_interval_hours: int = 24
 
-    # Sources
-    medium_tags: List[str]
-    arxiv_categories: List[str]
+    # Sources (default values provided, can be overridden via .env)
+    medium_tags: List[str] = ["artificial-intelligence", "machine-learning", "data-science", "generative-ai", "llm"]
+    arxiv_categories: List[str] = ["cs.AI", "cs.LG", "cs.CL"]
 
     @validator('medium_tags', 'arxiv_categories', pre=True)
     def _split_tags(cls, v):

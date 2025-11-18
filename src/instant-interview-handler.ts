@@ -7,7 +7,6 @@ import { findBestMatch, getRandomQuestion, HARDCODED_INTERVIEW_DATABASE } from '
 
 export class InstantInterviewHandler {
   private questionHistory: string[] = [];
-  private currentCategory: string | null = null;
 
   /**
    * Get instant answer for any interview question
