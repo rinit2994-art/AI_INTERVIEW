@@ -45,15 +45,15 @@ class ArticleFetcher:
 
                     if content:
                         articles.append({
-                                "title": entry.title,
-                                "content": content,
-                                "url": entry.link,
-                                "source": "Medium",
-                                "category": tag,
-                                "published_date": entry.get("published", ""),
-                                "fetched_date": datetime.now().isoformat()
-                            })
-                            logger.info(f"Fetched: {entry.title}")
+                            "title": entry.title,
+                            "content": content,
+                            "url": entry.link,
+                            "source": "Medium",
+                            "category": tag,
+                            "published_date": entry.get("published", ""),
+                            "fetched_date": datetime.now().isoformat()
+                        })
+                        logger.info(f"Fetched: {entry.title}")
 
                 # Be respectful with rate limiting
                 await asyncio.sleep(2)

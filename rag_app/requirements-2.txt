@@ -1,0 +1,8 @@
+# Google ADK and Gemini
+google-adk
+google-generativeai
+
+# LangChain
+langchain
+langchain-google-genai
+langchain-community
