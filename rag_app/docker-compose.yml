@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  rag-app:
+    build: .
+    container_name: ai-knowledge-rag
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEBUG=True
+      - CHROMA_PERSIST_DIRECTORY=/app/vector_db/chroma_data
+    volumes:
+      - ./vector_db:/app/vector_db
+      - ./data:/app/data
+      - ./frontend:/app/frontend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  vector_db:
+  data:
