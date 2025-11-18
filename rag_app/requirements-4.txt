@@ -1,0 +1,18 @@
+# Document Processing
+pypdf
+python-docx
+unstructured
+
+# Frontend
+jinja2
+
+# Utilities
+aiohttp
+httpx
+tenacity
+tiktoken
+
+# Development
+pytest
+pytest-asyncio
+black

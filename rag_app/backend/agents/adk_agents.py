@@ -2,7 +2,7 @@
 import logging
 from typing import Dict, Any, List
 from google.adk.agents import Agent
-from google.adk.tools import Tool
+from .simple_tool import SimpleTool
 from config.settings import settings
 from backend.services.vector_store import get_vector_store
 from backend.services.rag_pipeline import get_rag_pipeline
@@ -91,19 +91,19 @@ def get_knowledge_base_stats() -> Dict[str, Any]:
 
 
 # Create ADK Tools
-search_tool = Tool(
+search_tool = SimpleTool(
     name="search_knowledge_base",
     description="Search the AI/ML knowledge base for relevant articles and papers",
     func=search_knowledge_base
 )
 
-answer_tool = Tool(
+answer_tool = SimpleTool(
     name="get_detailed_answer",
     description="Get a comprehensive answer to a question using RAG with citations",
     func=get_detailed_answer
 )
 
-stats_tool = Tool(
+stats_tool = SimpleTool(
     name="get_knowledge_base_stats",
     description="Get statistics about the knowledge base (number of documents, etc.)",
     func=get_knowledge_base_stats

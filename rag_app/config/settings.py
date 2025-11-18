@@ -1,6 +1,7 @@
 """Application configuration settings."""
 import os
 from typing import List
+from pydantic import validator
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
@@ -33,17 +34,14 @@ class Settings(BaseSettings):
     fetch_interval_hours: int = 24
 
     # Sources
-    medium_tags: List[str] = [
-        "artificial-intelligence",
-        "machine-learning",
-        "data-science",
-        "generative-ai",
-        "llm",
-        "deep-learning",
-        "nlp"
-    ]
+    medium_tags: List[str]
+    arxiv_categories: List[str]
 
-    arxiv_categories: List[str] = ["cs.AI", "cs.LG", "cs.CL"]
+    @validator('medium_tags', 'arxiv_categories', pre=True)
+    def _split_tags(cls, v):
+        if isinstance(v, str):
+            return [tag.strip() for tag in v.split(',')]
+        return v
 
     # RAG Configuration
     chunk_size: int = 1000
